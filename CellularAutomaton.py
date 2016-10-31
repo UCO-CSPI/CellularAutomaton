@@ -9,7 +9,7 @@ class cell:
             if numpy.random.randint(2) == 1:
                 self.state = True
             else:
-                self.state = True #False
+                self.state = False
         else:
             self.state = state
         if Neighbors is None:
@@ -22,9 +22,12 @@ class cell:
     def __str__(self):
         return self.value.__str__()
 
+    def set_old_state(self):
+        self.OldState = self.state
+
+
     def update(self):
         c=0
-        self.OldState = self.state
         for n in self.Neighbors:
             if n.OldState: #This needs changed to old state
                 c += 1
@@ -35,9 +38,12 @@ class cell:
         #if c = 2, don't change state.
         elif c == 1:
             self.state = False
+        elif c == 0:
+            self.state = False
         self.__set_value()
 
     def __set_value(self):
+        #self.value=self.state
         if self.state:
             self.value = 1
         else:
