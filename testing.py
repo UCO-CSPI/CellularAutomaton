@@ -50,8 +50,39 @@ def test_update(stats):
     print('after update')
     print_grid(grid)
 
+def test_set_value():
+    rows = 4
+    columns = 4
+    grid=[[0 for x in range(columns)] for y in range(rows)]
+    for x in range(columns):
+        for y in range(rows):
+            grid[x][y]=cell(False)
+    SetNeighbors(grid,columns,rows)
+    print('After SetNeighbors')
+    print_grid(grid)
 
-test_update(stats = (0,1,0,1,0,1,0,1,0))
-test_update(stats = (0,0,0,0,1,0,0,0,1))
-test_update(stats = (0,1,0,1,1,1,0,0,0))
-test_update(stats = (0,1,0,1,0,1,0,0,0))
+    grid[0][1].state = True
+    grid[1][1].state = True
+    grid[1][2].state = True
+    grid[2][0].state = True
+    grid[2][2].state = True
+    for x in range(columns):
+        for y in range(rows):
+            grid[x][y].set_value()
+
+    print('After set values')
+    print_grid(grid)
+
+
+
+
+
+
+
+
+#test_update(stats = (0,1,0,1,0,1,0,1,0))
+#test_update(stats = (0,0,0,0,1,0,0,0,1))
+#test_update(stats = (0,1,0,1,1,1,0,0,0))
+#test_update(stats = (0,1,0,1,0,1,0,0,0))
+
+test_set_value()

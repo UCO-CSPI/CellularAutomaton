@@ -1,12 +1,15 @@
 import numpy
+
 class cell:
     #InitialState = False
     #DefaultState = False
+    ProbInitialTrue = 0.5
+
 
 
     def __init__(self, state=None, Neighbors=None):
         if state is None:
-            if numpy.random.randint(2) == 1:
+            if numpy.random.rand() <= cell.ProbInitialTrue:
                 self.state = True
             else:
                 self.state = False
@@ -49,30 +52,47 @@ class cell:
         else:
             self.value = 0
 
-def SetNeighbors(grid, columns, rows):
+    def set_value(self):
+        self.__set_value()
+
+
+def SetNeighbors(grid, columns, rows, IncludeDiagonalNeighbors=True):
     LastColumn = columns -1
     LastRow = rows - 1
 
     for y in range(rows):
         for x in range(columns):
             grid[y][x].Neighbors[:]=[] #Clear the neighbor list
+
+            #Find the indexes for right, left, top, bottom
             #to the right
             if x == LastColumn:
-                grid[y][x].Neighbors.append(grid[y][0])
+                r=0
             else:
-                grid[y][x].Neighbors.append(grid[y][x+1])
+                r=x+1
             #to the left
             if x == 0:
-                grid[y][x].Neighbors.append(grid[y][LastColumn])
+                l=LastColumn
             else:
-                grid[y][x].Neighbors.append(grid[y][x-1])
+                l = x-1
             #to the top
             if y == 0:
-                grid[y][x].Neighbors.append(grid[LastRow][x])
+                t=LastRow
             else:
-                grid[y][x].Neighbors.append(grid[y-1][x])
+                t=y-1
             #to the botom
             if y == LastRow:
-                grid[y][x].Neighbors.append(grid[0][x])
+                b=0
             else:
-                grid[y][x].Neighbors.append(grid[y + 1][x])
+                b=y + 1
+
+            grid[y][x].Neighbors.append(grid[y][r])  #right
+            grid[y][x].Neighbors.append(grid[y][l])  #left
+            grid[y][x].Neighbors.append(grid[t][x])  #top
+            grid[y][x].Neighbors.append(grid[b][x])  #bottom
+            if IncludeDiagonalNeighbors:
+                grid[y][x].Neighbors.append(grid[t][r])  # top right
+                grid[y][x].Neighbors.append(grid[t][l])  # top left
+                grid[y][x].Neighbors.append(grid[b][r])  # bottom right
+                grid[y][x].Neighbors.append(grid[b][l])  # bottom left
+
