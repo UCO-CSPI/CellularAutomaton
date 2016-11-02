@@ -24,7 +24,7 @@ class cell:
         self.__set_value()
         self.OldState=self.state
 
-    def __str__(self):
+    def __str__(self):   #instead, we should really define __getitem__(self,i) which is called for x[i]
         return self.value.__str__()
 
     def set_old_state(self):
@@ -56,6 +56,18 @@ class cell:
 
     def set_value(self):
         self.__set_value()
+
+class CAGrid(numpy.ndarray):
+
+    class CANeighborList():
+
+        def __init__(self):
+            self.Neighbors = [1, 2, 3, 4]
+
+    def __array_finalize_(self, obj):
+        print('in _array_finalize')
+
+
 
 
 def SetNeighbors(grid, columns, rows, IncludeDiagonalNeighbors=True):
