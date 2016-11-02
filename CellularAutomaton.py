@@ -1,10 +1,12 @@
 import numpy
 
 class cell:
+    """Cell is an object for cellular automaton simulations"""
+
+
     #InitialState = False
     #DefaultState = False
     ProbInitialTrue = 0.5
-
 
 
     def __init__(self, state=None, Neighbors=None):
