@@ -62,9 +62,6 @@ def figureout(a):
 class CAGrid(numpy.ndarray):
 
     def __new__(cls,shape, *args, **kwargs):
-        print('in CAGrid new')
-        print('  Args: ', args)
-        print('KWargs: ', kwargs)
 
         if 'buffer' in kwargs:
             raise TypeError("buffer not allowed in constructor.  Initilize grid after constructor.")
@@ -108,18 +105,19 @@ class CAGrid(numpy.ndarray):
         OldBase = Base.copy()
         Old     = OldBase[1:BaseShape[0]-1,1:BaseShape[1]-1]
         Old.Base        = OldBase
-        Old.TopLeft     = Old.Base[0:BaseShape[0]-2, 0:BaseShape[1]-2]
-        Old.Top         = Old.Base[0:BaseShape[0]-2, 1:BaseShape[1]-1]
-        Old.TopRight    = Old.Base[0:BaseShape[0]-2, 2:BaseShape[1]]
-        Old.Left        = Old.Base[1:BaseShape[0]-1, 0:BaseShape[1]-2]
-        Old.Right       = Old.Base[1:BaseShape[0]-1, 2:BaseShape[1]]
-        Old.BottomLeft  = Old.Base[2:BaseShape[0],   0:BaseShape[1]-2]
-        Old.Bottom      = Old.Base[2:BaseShape[0],   1:BaseShape[1]-1]
-        Old.BottomRight = Old.Base[2:BaseShape[0],   2:BaseShape[1]]
-        Old.Neighbors   = [ni.Top, ni.TopRight, ni.Right, ni.BottomRight, ni.Bottom, ni.BottomLeft, ni.Left, ni.TopLeft]
-        ni.Old = Old
-        ni.TrueArray         = numpy.full(ni.shape,True,dtype=numpy.dtype('b'))
-
+        Old.NTopLeft     = Old.Base[0:BaseShape[0]-2, 0:BaseShape[1]-2]
+        Old.NTop         = Old.Base[0:BaseShape[0]-2, 1:BaseShape[1]-1]
+        Old.NTopRight    = Old.Base[0:BaseShape[0]-2, 2:BaseShape[1]]
+        Old.NLeft        = Old.Base[1:BaseShape[0]-1, 0:BaseShape[1]-2]
+        Old.NRight       = Old.Base[1:BaseShape[0]-1, 2:BaseShape[1]]
+        Old.NBottomLeft  = Old.Base[2:BaseShape[0],   0:BaseShape[1]-2]
+        Old.NBottom      = Old.Base[2:BaseShape[0],   1:BaseShape[1]-1]
+        Old.NBottomRight = Old.Base[2:BaseShape[0],   2:BaseShape[1]]
+        Old.Neighbors   = [Old.NTop, Old.NTopRight, Old.NRight, Old.NBottomRight,
+                           Old.NBottom, Old.NBottomLeft, Old.NLeft, Old.NTopLeft]
+        ni.Old       = Old
+        ni.TrueArray = numpy.full(ni.shape,True,dtype=numpy.dtype('b'))
+        ni.count     = numpy.zeros(ni.shape)
 
         return ni
 
@@ -127,7 +125,7 @@ class CAGrid(numpy.ndarray):
     def __array_finalize_(self, obj):
         print('in _array_finalize')
 
-    def update(self):
+    def Update(self):
         """Implements a single time step using Game of Life Rules
 
         def update(self)
@@ -142,30 +140,34 @@ class CAGrid(numpy.ndarray):
 
 
         #Determine number of neighbors
-        count = numpy.zeros(self.shape)
-        for n in self.Old.Neighbors:
-            count = count + n['Value']
+        numpy.place(self.count,self.TrueArray,0)
+        for n in self.Neighbors:
+            self.count = self.count + n['Value']
 
-        #Implement Game of Life Rules
+        #Implement Game of Life Rules  (Note: self.Old is actually not needed for Game of Life.  Probably not for others as well.)
         numpy.copyto(self.Old,self)                #Default is no change for count = 2
-        numpy.place(self['Value'],count>3,False)   #If count > 3: new value = False
-        numpy.place(self['Value'],count==3,True)   #If count = 3: new value = True
-        numpy.place(self['Value'],count<2,False)   #if count < 2: new value = False
-        #setboundary()
+        numpy.place(self['Value'],self.count>3,False)   #If count > 3: new value = False
+        numpy.place(self['Value'],self.count==3,True)   #If count = 3: new value = True
+        numpy.place(self['Value'],self.count<2,False)   #if count < 2: new value = False
+        self.SetBoundary()
 
-        def setboundary(self):
-            """Method copies array items from the data grid cells to the surrounding boundary condition cells.
+
+    def SetBoundary(self):
+        """Method copies array items from the data grid cells to the surrounding boundary condition cells.
 
             def setboundary(self):"""
 
-            #copy the rows and columns.  These are views into the base created in __new__
-            numpy.copyto(self.BBottomRow,   self.TopRow)
-            numpy.copyto(self.BLeftColumn,  self.RightColumn)
-            numpy.copyto(self.BTopRow,      self.BottomRow)
-            numpy.copyto(self.BRightColumn, self.LeftColumn)
+        # copy the rows and columns.  These are views into the base created in __new__
+        numpy.copyto(self.BBottomRow, self.TopRow)
+        numpy.copyto(self.BLeftColumn, self.RightColumn)
+        numpy.copyto(self.BTopRow, self.BottomRow)
+        numpy.copyto(self.BRightColumn, self.LeftColumn)
 
-            #copy the corners
-
+        # copy the corners
+        self.Base[0][0] = self[self.shape[0] - 1][self.shape[1] - 1]  # Set Top Left Corner
+        self.Base[0][self.Base.shape[1] - 1] = self[self.shape[0] - 1][0]  # Set Top    Right Corner
+        self.Base[self.Base.shape[0] - 1][self.Base.shape[1] - 1] = self[0][0]  # Set Bottom Right Corner
+        self.Base[self.Base.shape[0] - 1][0] = self[0][self.shape[1] - 1]  # Set Bottom Left Corner
 
 
 def SetNeighbors(grid, columns, rows, IncludeDiagonalNeighbors=True):
