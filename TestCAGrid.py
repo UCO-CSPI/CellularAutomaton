@@ -14,9 +14,9 @@ mydtype = np.dtype([('Value', 'i')])
 x = CAGrid((3,10),mydtype)
 print(type(x))
 
-# for y in range(BaseShape[0]):
+#for y in range(BaseShape[0]):
 #     for x in range(BaseShape[1]):
-#         Base['Value'][y][x] = 10*y + x +100
+#         Base['Value'][y][x] = 10*y + x + 100
 
 
 mydtype = np.dtype([('Value', 'b')])
