@@ -118,6 +118,7 @@ class CAGrid(numpy.ndarray):
         ni.Old       = Old
         ni.TrueArray = numpy.full(ni.shape,True,dtype=numpy.dtype('b'))
         ni.count     = numpy.zeros(ni.shape)
+        ni.UpdateCount = 0
 
         return ni
 
@@ -146,10 +147,13 @@ class CAGrid(numpy.ndarray):
 
         #Implement Game of Life Rules  (Note: self.Old is actually not needed for Game of Life.  Probably not for others as well.)
         numpy.copyto(self.Old,self)                #Default is no change for count = 2
-        numpy.place(self['Value'],self.count>3,False)   #If count > 3: new value = False
-        numpy.place(self['Value'],self.count==3,True)   #If count = 3: new value = True
-        numpy.place(self['Value'],self.count<2,False)   #if count < 2: new value = False
+        numpy.place(self['State'],self.count>3,False)   #If count > 3: new value = False
+        numpy.place(self['State'],self.count==3,True)   #If count = 3: new value = True
+        numpy.place(self['State'],self.count<2,False)   #if count < 2: new value = False
+        self.SetValue()
         self.SetBoundary()
+
+        self.UpdateCount +=1
 
 
     def SetBoundary(self):
@@ -168,6 +172,9 @@ class CAGrid(numpy.ndarray):
         self.Base[0][self.Base.shape[1] - 1] = self[self.shape[0] - 1][0]  # Set Top    Right Corner
         self.Base[self.Base.shape[0] - 1][self.Base.shape[1] - 1] = self[0][0]  # Set Bottom Right Corner
         self.Base[self.Base.shape[0] - 1][0] = self[0][self.shape[1] - 1]  # Set Bottom Left Corner
+
+    def SetValue(self):
+        numpy.copyto(self['Value'],self['State'])
 
 
 def SetNeighbors(grid, columns, rows, IncludeDiagonalNeighbors=True):
