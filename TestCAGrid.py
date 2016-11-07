@@ -70,11 +70,10 @@ def test_update(rows, columns, interations, states):
         print(MyGrid)
 
 
-np.zeros()
 
 
 
-#test_setboundary()
+test_setboundary()
 print('test_update(3, 3, 2, states = (0,1,0,1,0,1,0,1,0))')
 test_update(3, 3, 2, states = (0,1,0,1,0,1,0,1,0))
 print('next should give a stable block in upper right corner.')

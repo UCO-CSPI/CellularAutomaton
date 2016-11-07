@@ -10,7 +10,7 @@ MyGrid['State']=numpy.zeros_like(MyGrid['State'])
 print(MyGrid)
 print(MyGrid[0][0])
 
-MyDType = numpy.dtype([('State', 'bool_'), ('cell', cell)])
+MyDType = numpy.dtype([('State', 'bool_'), ('cell', Cell)])
 print(MyDType)
 print(repr(MyDType))
 
@@ -19,7 +19,7 @@ print(MyGrid)
 
 MyCells = MyGrid['cell']
 
-MyCells[0][0] = cell()
+MyCells[0][0] = Cell()
 
 
 print(MyGrid['cell'][0][0].state)

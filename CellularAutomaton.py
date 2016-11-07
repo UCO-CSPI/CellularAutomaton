@@ -1,6 +1,7 @@
 import numpy
 
-class cell:
+
+class Cell:
     """Cell is an object for cellular automaton simulations (especially game of life simulations).
 
     The cell object will keep track of its state, neighbors and update itself when update is called.
@@ -14,76 +15,74 @@ class cell:
                                     True or False.
 
     Instance Variables (or Data Attributes):
-
         These are unique for each instance of the class.
 
         .state          ->  In the game of life, this tracks if the cell is 'alive' or 'dead.'
         .value          ->  Python expects this attribute to be returned in various cases.
-        Neighbors[]     ->  List of cell neighbors.  This list is used by update to know where to
+        .Neighbors[]    ->  List of cell neighbors.  This list is used by update to know where to
                             check values.  This list must be set before calls to update.
                             This class provides no functionality for calculating the neighbors.
-        OldState        ->  Used in update to store the cell value from the previous time step.
+        .OldState       ->  Used in update to store the cell value from the previous time step.
                             This enables all cells to calculate their new state based on values
                             from the previous time step.
+        .UpdateCount    ->  Number of times .update has completed.
 
     Methods:
         These are the functions of the class.
         update          ->  Calculates and sets cell value for the single timestep.
                             It sets .state and updates .value.
                             This method does not modify .OldState
-        set_old_state   ->  Simplly sets .OldState = .State.  A function for this is not really needed.
+    Helper Functions:
+        While it is not a member of this class, in this file there is a helper function
+        SetNeighbors which sets the neighbor values for cells in a grid.
+        """
 
-
-    """
-
-
-
-
-    #InitialState = False
-    #DefaultState = False
     ProbInitialTrue = 0.5
 
-
-    def __init__(self, state=None, Neighbors=None):
+    def __init__(self, state=None, neighbors=None):
         if state is None:
-            if numpy.random.rand() <= cell.ProbInitialTrue:
+            if numpy.random.rand() <= Cell.ProbInitialTrue:
                 self.state = True
             else:
                 self.state = False
         else:
             self.state = state
-        if Neighbors is None:
-            self.Neighbors=[]
+        if neighbors is None:
+            self.Neighbors = []
         else:
-            self.Neighbors=Neighbors
+            self.Neighbors = neighbors
         self.__set_value()
-        self.OldState=self.state
+        self.OldState = self.state
+        self.UpdateCount = 0
 
-    def __str__(self):   #instead, we should really define __getitem__(self,i) which is called for x[i]
+    def __str__(self):    # instead, we should really define __getitem__(self,i) which is called for x[i]
         return self.value.__str__()
 
-    def set_old_state(self):
-        self.OldState = self.state
+    def __getitem__(self,i):
+        return self[i].value
 
+    def __repr__(self):
+        return self.value.__str__()
 
     def update(self):
-        c=0
+        c = 0
         for n in self.Neighbors:
-            if n.OldState: #This needs changed to old state
+            if n.OldState:                # This needs changed to old state
                 c += 1
-        if c == 4:
+        if c > 3:
             self.state = False
         elif c == 3:
             self.state = True
-        #if c = 2, don't change state.
+        # if c = 2, don't change state.
         elif c == 1:
             self.state = False
         elif c == 0:
             self.state = False
+        self.UpdateCount += 1
         self.__set_value()
 
     def __set_value(self):
-        #self.value=self.state
+        # self.value=self.state
         if self.state:
             self.value = 1
         else:
@@ -92,31 +91,49 @@ class cell:
     def set_value(self):
         self.__set_value()
 
+def SetOldStates(grid):
+    """Function sets .OldState = .State for each cell in grid"""
+
+    for row in grid:
+        for c in row:
+            c.OldState = c.state
+
+
 def SetNeighbors(grid, columns, rows, IncludeDiagonalNeighbors=True):
-    LastColumn = columns -1
+    """Sets the neighbors for Cells in a 2D list.
+
+    grid    ->  2D list of cells with dimensions columns x rows
+    columns ->  Number of  columns in the simulation grid
+    rows    ->  Number of rows in the simulation grid
+    IncludeDiagonalNeighbors = (True by default)
+                States if the neighbor lists should inlclude:
+                    just the 4 nearest neighbors (IncludeDiagonalNeighbors=False)
+                    the 4 nearest neighbors and the 4 catty-corner cells (IncludeDiagonalNeighbors=True)
+    """
+    LastColumn = columns - 1
     LastRow = rows - 1
 
     for y in range(rows):
         for x in range(columns):
             grid[y][x].Neighbors[:]=[] #Clear the neighbor list
 
-            #Find the indexes for right, left, top, bottom
-            #to the right
+            # Find the indexes for right, left, top, bottom
+            # to the right
             if x == LastColumn:
-                r=0
+                r = 0
             else:
-                r=x+1
-            #to the left
+                r = x + 1
+            # to the left
             if x == 0:
                 l=LastColumn
             else:
                 l = x-1
-            #to the top
+            # to the top
             if y == 0:
                 t=LastRow
             else:
                 t=y-1
-            #to the botom
+            # to the botom
             if y == LastRow:
                 b=0
             else:
@@ -243,19 +260,19 @@ class CAGrid(numpy.ndarray):
 
         if 'buffer' in kwargs:
             raise TypeError("buffer not allowed in constructor.  Initilize grid after constructor.")
-            #If we did want to try and take a buffer, the code below would probably be needed as well as a
+            # If we did want to try and take a buffer, the code below would probably be needed as well as a
             # copying the data to the new array after it has been created, copyto(ni, buffer).
-            #databuffer= kwargs['buffer']
-            #del kwargs['buffer']
-            #print('Buffer values will be used, but not the memory locations')
+            # databuffer= kwargs['buffer']
+            # del kwargs['buffer']
+            # print('Buffer values will be used, but not the memory locations')
         BaseShape = tuple([d+2 for d in shape])
 
         Base = numpy.ndarray.__new__(cls, BaseShape,*args, **kwargs)
 
-        #ni stands for new instance.  It is the object this __new__ will return
-        ni = Base[1:BaseShape[0]-1,1:BaseShape[1]-1]                 #ni.Base might not be needed since this
+        # ni stands for new instance.  It is the object this __new__ will return
+        ni = Base[1:BaseShape[0]-1,1:BaseShape[1]-1]                 # ni.Base might not be needed since this
         ni.Base        = Base                                        # is already defined as base by numpy
-        #Create views for the neighbors in each direction.
+        # Create views for the neighbors in each direction.
         ni.NTopLeft     = Base[0:BaseShape[0]-2, 0:BaseShape[1]-2]
         ni.NTop         = Base[0:BaseShape[0]-2, 1:BaseShape[1]-1]
         ni.NTopRight    = Base[0:BaseShape[0]-2, 2:BaseShape[1]]
@@ -266,18 +283,18 @@ class CAGrid(numpy.ndarray):
         ni.NBottomRight = Base[2:BaseShape[0],   2:BaseShape[1]]
         ni.Neighbors    = [ni.NTop,    ni.NTopRight,   ni.NRight, ni.NBottomRight,
                            ni.NBottom, ni.NBottomLeft, ni.NLeft,  ni.NTopLeft]
-        #Create views for the grid boundaries.
+        # Create views for the grid boundaries.
         ni.TopRow       = Base[1:2,                           1:BaseShape[1]-1]
         ni.BottomRow    = Base[BaseShape[0]-2:BaseShape[0]-1, 1:BaseShape[1]-1]
         ni.LeftColumn   = Base[1:BaseShape[0]-1,              1:2]
         ni.RightColumn  = Base[1:BaseShape[0]-1,              BaseShape[1]-2:BaseShape[1]-1]
-        #These are the views into the boundary cells
+        # These are the views into the boundary cells
         ni.BTopRow      = Base[0:1,                           1:BaseShape[1]-1]
         ni.BBottomRow   = Base[BaseShape[0]-1:BaseShape[0],   1:BaseShape[1]-1]
         ni.BLeftColumn  = Base[1:BaseShape[0]-1,              0:1]
         ni.BRightColumn = Base[1:BaseShape[0]-1,              BaseShape[1]-1:BaseShape[1]]
 
-        #Create a copy of the array in case it is need to keep the old data durning an update.
+        # Create a copy of the array in case it is need to keep the old data durning an update.
         OldBase = Base.copy()
         Old     = OldBase[1:BaseShape[0]-1,1:BaseShape[1]-1]
         Old.Base        = OldBase
@@ -322,18 +339,18 @@ class CAGrid(numpy.ndarray):
         Method also calls self.FinishUpdate
         """
 
-        #Determine number of neighbors
+        # Determine number of neighbors
         numpy.place(self.count,self.TrueArray,0)
         for n in self.Neighbors:
             self.count = self.count + n['Value']
 
-        #Implement Game of Life Rules
-        #Note:  Self.Old is actually not needed for Game of Life.
+        # Implement Game of Life Rules
+        # Note:  Self.Old is actually not needed for Game of Life.
         #       It might not be needed for other Update methods either.
-        #numpy.copyto(self.Old,self)                #Default is no change for count = 2
-        numpy.place(self['State'],self.count>3,False)   #If count > 3: new value = False
-        numpy.place(self['State'],self.count==3,True)   #If count = 3: new value = True
-        numpy.place(self['State'],self.count<2,False)   #if count < 2: new value = False
+        # numpy.copyto(self.Old,self)                       # Default is no change for count = 2
+        numpy.place(self['State'], self.count >3, False)   # If count > 3: new value = False
+        numpy.place(self['State'], self.count ==3, True)   # If count = 3: new value = True
+        numpy.place(self['State'], self.count <2, False)   # If count < 2: new value = False
         self.FinishUpdate()
         self.UpdateCount += 1
 
@@ -367,6 +384,4 @@ class CAGrid(numpy.ndarray):
 
     def SetValue(self):
         """Sets the 'Value' field of the structured array equal to the 'State' Field."""
-        numpy.copyto(self['Value'],self['State'])
-
-
+        numpy.copyto(self['Value'], self['State'])
