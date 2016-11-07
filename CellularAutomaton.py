@@ -60,6 +60,42 @@ def figureout(a):
     print(a)
 
 class CAGrid(numpy.ndarray):
+    """Class for implementing cellular automaton grid simulations.
+
+    Provides a framework for implementing 2D cellular automaton (CA) simulations using numpy arrays.
+    Each instance of the class has a numpy array for the cell data.  The class automatically creates
+    boundary cells surrounding the simulation grid.  I also creates views into the simulation grid
+    for use with numpy array operations for calculation.
+
+    Since this class inherits numpy.ndarray, several unique approaches must be used (espicially for
+    class instance creation.)  The document at
+    https://docs.scipy.org/doc/numpy/user/basics.subclassing.html explains using ndarray as a
+    subclass and these special approaches.
+
+    Also important in the concept of an array view.  A view to an array does not use new data in
+    memory, but simply 'views' the data which already exists.  Because of this efficiency, this class
+    creates many views into the grid.  These views can be used later for efficient calculation through
+    numpy calls rather than iterating over items through interpreted python code.
+
+    The class methods are:
+
+    __new__ -> class initialization method.
+                The array or grid shape must be provided.  The constructor will not take data.
+                It creates an array 2 bigger than the shape argument pass.  This is allows for boundary
+                cells in each direction.  It then returns a numpy array for the main simulation data.
+                This is actually a view into the data of the bigger array.  The bigger array is
+                available through .Base or .base. It also creates view arrays for the neighbors to
+                the top, top right, left, bottom left ...
+
+     __array_finalize_ ->  Always called after initialization
+
+     __init__ -> is not used since it is not always called for subclasses of ndarray.
+
+     Update -> This implements the rules of the
+     SetValue
+     SetBoundary
+
+    """
 
     def __new__(cls,shape, *args, **kwargs):
 
