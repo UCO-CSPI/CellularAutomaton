@@ -64,47 +64,111 @@ class CAGrid(numpy.ndarray):
 
     Provides a framework for implementing 2D cellular automaton (CA) simulations using numpy arrays.
     Each instance of the class has a numpy array for the cell data.  The class automatically creates
-    boundary cells surrounding the simulation grid.  I also creates views into the simulation grid
-    for use with numpy array operations for calculation.
+    boundary cells surrounding the simulation grid.  It also creates views into the simulation grid,
+    boundary cells, and neighbor cells for use with numpy array calculation calls.
 
     Since this class inherits numpy.ndarray, several unique approaches must be used (espicially for
     class instance creation.)  The document at
     https://docs.scipy.org/doc/numpy/user/basics.subclassing.html explains using ndarray as a
     subclass and these special approaches.
 
-    Also important in the concept of an array view.  A view to an array does not use new data in
-    memory, but simply 'views' the data which already exists.  Because of this efficiency, this class
-    creates many views into the grid.  These views can be used later for efficient calculation through
-    numpy calls rather than iterating over items through interpreted python code.
+    Also important is the concept of an array view.  A view to an array does not use new data in
+    memory, but simply 'views' the data which already exists.  This is explained some at
+    https://docs.scipy.org/doc/numpy-dev/user/quickstart.html#copies-and-views
+    Because of this efficiency, this class creates many views into the grid.  These views can be
+    used later for efficient calculation through numpy calls rather than iterating over items
+    through interpreted python code.
 
-    The class methods are:
+    Class methods and attributes Inherited:
+    All the instance variables associated with Numpy ndarray such as .shape, .dtype
+    A complete list of ndarray methods and attributes is available at
+    https://docs.scipy.org/doc/numpy-1.10.1/reference/generated/numpy.ndarray.html#numpy.ndarray
 
+
+    The new class methods are:
     __new__ -> class initialization method.
-                The array or grid shape must be provided.  The constructor will not take data.
-                It creates an array 2 bigger than the shape argument pass.  This is allows for boundary
-                cells in each direction.  It then returns a numpy array for the main simulation data.
-                This is actually a view into the data of the bigger array.  The bigger array is
-                available through .Base or .base. It also creates view arrays for the neighbors to
+                The array (or grid) shape must be provided.  The constructor will not take data.
+                It creates an array 2 cells (or nodes) larger than the shape argument passed.  This
+                allows for boundary cells in each direction.  The constructor returns a numpy array
+                for the main simulation data. This is actually a view into the data of the bigger
+                array which also contains boundary cells.  The bigger array is available through
+                .Base or .base. The constructor also creates view arrays for the neighbors to
                 the top, top right, left, bottom left ...
 
-     __array_finalize_ ->  Always called after initialization
+    __array_finalize_ ->  Always called after initialization.  It does not currently do anything.
 
-     __init__ -> is not used since it is not always called for subclasses of ndarray.
+    __init__ -> Not used since it is not always called for subclasses of ndarray.
 
-     Update -> This implements the rules of the
-     SetValue
-     SetBoundary
+    Update ->   Implements the rules of the cellular automaton
+                Currently implements a simulation using 'game of life rules.'
+                To implement other cellular automaton simulations, either:
+                    1.) Change the code in this file (especially Update)
+                    2.) Create a new class which inherits this class with
+                        class NewClass(CAGrid):
+                        and include in that class an update function which will replace the
+                        one here.
 
+    FinishUpdate -> Completes tasks after update
+                    After cell values are updated, there are several tasks which must be completed
+                    to prepare the CAGrid object for display and/or the next call to update.
+                    Currently, this includes calling SetValue and SetBoundary.
+
+    SetValue -> Sets the 'Value' field for the stuctured array.
+                This function is somewhat tied to the Game of Life Simulation.
+                The purpose of this function is do a fast conversion to float values as
+                expected by matplotlib.matshow.
+
+    SetBoundary ->  Sets the boundary conditions by copying cells from main simulation grid
+                    to the boundary cells.
+
+    New Data Attributes or Instance Variables are:
+    .Base or .base ->   The large array which includes the boundary cells.
+                        .base is the normal attribute for a numpy array.
+                            The array returned by the constructor is actualy a view into the larger
+                            array.  So numpy automatically creates this reference.
+                        .Base is created in the constructor.  It is probably not needed.  It might be
+                            needed to keep the larger array in memory.
+
+    .Neighbors[]  ->    List of arrays which are views which give the cell's neighbor in a direction.
+                        In other words, one of the neighbors is TopLeft.  Accessing TopLeft[3][4]
+                        returns the grid node at [2][3].
+                        Diagonal neighbor arrays are included in the list.
+
+    .Old    ->          Attribute which has the same attributes as the CAGrid object.  .Old is for
+                        storing the old state of the object before update if necessary.
+    .TrueArray  ->      Array of True values for use in mask/array operations.  It is the same size
+                        as the simulation grid, not the base grid.  Used for update calculations.
+                        Declaring .TrueArray makes the code run faster because memory is not created
+                        with each update.  Since it is an instance variable, it is created and
+                        initialized only once per simulation.
+    .count      ->      Used by the game of life update to count number of alive neighbors.
+    .UpdateCount    ->  Tracks the number of times Update is called.
     """
 
     def __new__(cls,shape, *args, **kwargs):
+        """Creator of new CGAGrid array.
+
+        shape:
+                Size of the simulation grid.  The base grid will be two larger than this in
+                each direction.
+        buffer:
+                buffer values are not allowed as they are with an ndarray.
+                Including the buffer keyword raises an error.
+                Taking a buffer would require COPPYING the data instead of using the already
+                existing memory location becuase the needed buffer is larger than the simulation
+                grid.  Coppying the data could cause memory usage problems.
+        all other arguments and keywords are passed to the numpy array creator.
+
+        This function:
+            Creates array with shape = passedshape + (2,2)
+            Creates view into array for simulation grid  (This is the array object returned.)
+            Adds to simulation grid array instance variables as described in class docstring.
+
+
+        """
 
         if 'buffer' in kwargs:
             raise TypeError("buffer not allowed in constructor.  Initilize grid after constructor.")
-            #Taking a buffer requires COPPYING the data instead of using the already existing memory location.
-            #This could cause memory usage problems.
-            #The data has to be coppied because the Base array which handles boundary conditions is larger than
-            # the real cells.
             #If we did want to try and take a buffer, the code below would probably be needed as well as a
             # copying the data to the new array after it has been created, copyto(ni, buffer).
             #databuffer= kwargs['buffer']
@@ -133,11 +197,13 @@ class CAGrid(numpy.ndarray):
         ni.BottomRow    = Base[BaseShape[0]-2:BaseShape[0]-1, 1:BaseShape[1]-1]
         ni.LeftColumn   = Base[1:BaseShape[0]-1,              1:2]
         ni.RightColumn  = Base[1:BaseShape[0]-1,              BaseShape[1]-2:BaseShape[1]-1]
+        #These are the views into the boundary cells
         ni.BTopRow      = Base[0:1,                           1:BaseShape[1]-1]
         ni.BBottomRow   = Base[BaseShape[0]-1:BaseShape[0],   1:BaseShape[1]-1]
         ni.BLeftColumn  = Base[1:BaseShape[0]-1,              0:1]
         ni.BRightColumn = Base[1:BaseShape[0]-1,              BaseShape[1]-1:BaseShape[1]]
 
+        #Create a copy of the array in case it is need to keep the old data durning an update.
         OldBase = Base.copy()
         Old     = OldBase[1:BaseShape[0]-1,1:BaseShape[1]-1]
         Old.Base        = OldBase
@@ -160,42 +226,58 @@ class CAGrid(numpy.ndarray):
 
 
     def __array_finalize_(self, obj):
-        print('in _array_finalize')
+        """Initialization code may be place here.
+
+        Currently this function does nothing."""
+        pass
 
     def Update(self):
         """Implements a single time step using Game of Life Rules
 
-        def update(self)
         Method currently takes no arguments.
 
         Method sums the 'Value' of the neighbor cells and then applies the game of life rules.
         Method uses array operations for calculations rather than iterators so that we take
             full advantage of underlying C and Blas routines rather than slower Python code.
 
-        Method also updates the boundary cells after the update to the main grid.
-        """
+        Some of these routines are listed at:
+        https://docs.scipy.org/doc/numpy/reference/routines.indexing.html#inserting-data-into-arrays
+        In this method, numpy.place is used.  It is documented at:
+        https://docs.scipy.org/doc/numpy/reference/generated/numpy.place.html#numpy.place
 
+        Method also calls self.FinishUpdate
+        """
 
         #Determine number of neighbors
         numpy.place(self.count,self.TrueArray,0)
         for n in self.Neighbors:
             self.count = self.count + n['Value']
 
-        #Implement Game of Life Rules  (Note: self.Old is actually not needed for Game of Life.  Probably not for others as well.)
-        numpy.copyto(self.Old,self)                #Default is no change for count = 2
+        #Implement Game of Life Rules
+        #Note:  Self.Old is actually not needed for Game of Life.
+        #       It might not be needed for other Update methods either.
+        #numpy.copyto(self.Old,self)                #Default is no change for count = 2
         numpy.place(self['State'],self.count>3,False)   #If count > 3: new value = False
         numpy.place(self['State'],self.count==3,True)   #If count = 3: new value = True
         numpy.place(self['State'],self.count<2,False)   #if count < 2: new value = False
+        self.FinishUpdate()
+        self.UpdateCount += 1
+
+    def FinishUpdate(self):
+        """Method cleans up the grid in preparation of the next call to Update.
+
+        This function should be called:
+            1. After grid initilization but before the first call to Update
+            2. Between every call to Update.
+            """
+
         self.SetValue()
         self.SetBoundary()
 
-        self.UpdateCount +=1
 
 
     def SetBoundary(self):
-        """Method copies array items from the data grid cells to the surrounding boundary condition cells.
-
-            def setboundary(self):"""
+        """Method copies array items from the data grid cells to the surrounding boundary condition cells."""
 
         # copy the rows and columns.  These are views into the base created in __new__
         numpy.copyto(self.BBottomRow, self.TopRow)
@@ -210,6 +292,7 @@ class CAGrid(numpy.ndarray):
         self.Base[self.Base.shape[0] - 1][0] = self[0][self.shape[1] - 1]  # Set Bottom Left Corner
 
     def SetValue(self):
+        """Sets the 'Value' field of the structured array equal to the 'State' Field."""
         numpy.copyto(self['Value'],self['State'])
 
 
