@@ -30,11 +30,13 @@ class Cell:
     Methods:
         These are the functions of the class.
         update          ->  Calculates and sets cell value for the single timestep.
-                            It sets .state and updates .value.
+                            It calculates .state and updates .value.
                             This method does not modify .OldState
     Helper Functions:
-        While it is not a member of this class, in this file there is a helper function
-        SetNeighbors which sets the neighbor values for cells in a grid.
+        While it is not a member of this class, in this file there are two helper functions:
+
+        SetNeighbors sets the neighbor values for all cells in a grid.
+        SetOldStates sets .OldState = .State for  all cells in a grid.
         """
 
     ProbInitialTrue = 0.5
@@ -92,7 +94,10 @@ class Cell:
         self.__set_value()
 
 def SetOldStates(grid):
-    """Function sets .OldState = .State for each cell in grid"""
+    """Function sets .OldState = .State for each cell in grid
+
+        grid    ->  2D list of cells"""
+
 
     for row in grid:
         for c in row:

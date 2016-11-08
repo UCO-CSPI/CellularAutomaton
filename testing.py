@@ -88,4 +88,4 @@ test_update(4, 5, 5, states = (0,0,0,0,0,
                                0,1,1,1,0,
                                0,0,0,0,0))
 print('next')
-test_update(3,3,3,states = (0,1,0,1,0,1,0,1,0))
+test_update(3,3,3,states = (1,0,0,1,0,0,0,1,0))
