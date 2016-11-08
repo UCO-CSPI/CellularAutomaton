@@ -39,7 +39,7 @@ class Cell:
         SetOldStates sets .OldState = .State for  all cells in a grid.
         """
 
-    ProbInitialTrue = 0.5
+    ProbInitialTrue = 0.6
 
     def __init__(self, state=None, neighbors=None):
         if state is None:
