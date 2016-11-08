@@ -2,14 +2,6 @@ from CellularAutomaton import *
 import numpy as np
 
 
-# mydtype = np.dytpe('f')
-# data = np.array([[0., 1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11.], [10., 11., 12., 13., 14., 15., 16., 17., 18., 19., 20, 21],
-#              [20., 21., 22., 23., 24., 25., 26., 27., 28., 29., 30, 31]])
-# data = np.array([[ (1.,),  (2.,),  (3.,),  (4.,),  (5.,),  (6.,),  (7.,),  (8.,),  (9.,), (10.,)], \
-#                [(11.,), (12.,), (13.,), (14.,), (15.,), (16.,), (17.,), (18.,), (19.,), (20.,)], \
-#               [(21.,), (22.,), (23.,), (24.,), (25.,), (26.,), (27.,), (28.,), (29.,), (30.,)]], dtype=mydtype)
-# x = CAGrid((3,10),mydtype, buffer=data)
-
 def test_init(Rows, Columns, States):
 
 
@@ -72,7 +64,7 @@ def test_update(rows, columns, interations, states):
 
 
 
-
+print('*** Running test_setboundar ****')
 test_setboundary()
 print('test_update(3, 3, 2, states = (0,1,0,1,0,1,0,1,0))')
 test_update(3, 3, 2, states = (0,1,0,1,0,1,0,1,0))
@@ -85,5 +77,5 @@ test_update(4, 5, 5, states = (0,0,0,0,0,
                                0,0,0,0,0,
                                0,1,1,1,0,
                                0,0,0,0,0))
-print('next')
+print('Checkerboard')
 test_update(3,3,3,states = (0,1,0,1,0,1,0,1,0))

@@ -1,21 +1,25 @@
 from CellularAutomaton import *
 
+
 def print_grid(grid):
-    str = ''
+
+    string = ''
     for x in range(len(grid)):
         for y in range(len(grid[x])):
-            str += grid[x][y].value.__str__() + '   '
-        str += '\n'
-    print(str)
+            string += grid[x][y].value.__str__() + '   '
+        string += '\n'
+    print(string)
+
 
 def test_neighbors():
+
     rows = 3
     columns = 3
-    i=0
-    grid=[[0 for x in range(columns)] for y in range(rows)]
+    i = 0
+    grid = [[0 for x in range(columns)] for y in range(rows)]
     for x in range(columns):
         for y in range(rows):
-            grid[x][y]=Cell()
+            grid[x][y] = Cell()
             i = i + 1
 
     print('Before SetNeighbors')
@@ -51,6 +55,7 @@ def test_update(rows, columns, interations, states):
         print_grid(grid)
 
 def test_set_value():
+
     rows = 4
     columns = 4
     grid=[[0 for x in range(columns)] for y in range(rows)]
@@ -87,5 +92,5 @@ test_update(4, 5, 5, states = (0,0,0,0,0,
                                0,0,0,0,0,
                                0,1,1,1,0,
                                0,0,0,0,0))
-print('next')
+print('Checkerboard')
 test_update(3,3,3,states = (1,0,0,1,0,0,0,1,0))
