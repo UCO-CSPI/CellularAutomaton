@@ -48,6 +48,6 @@ class FireGrid(CAGrid):
                 if self['Burning'][y][x]:
                     self['Value'][y][x]=(1,0,0)
                 elif self['Tree'][y][x]:
-                    self['Value'][y][x]=(0,0,1)
+                    self['Value'][y][x]=(0,.75,0)
                 else:
-                    self['Value'][y][x]=(1,1,1)
+                    self['Value'][y][x]=(.34,.231,.05)
