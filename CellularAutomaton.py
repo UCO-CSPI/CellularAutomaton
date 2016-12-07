@@ -287,8 +287,7 @@ class CAGrid(numpy.ndarray):
         ni.NBottomLeft  = Base[2:BaseShape[0],   0:BaseShape[1]-2]
         ni.NBottom      = Base[2:BaseShape[0],   1:BaseShape[1]-1]
         ni.NBottomRight = Base[2:BaseShape[0],   2:BaseShape[1]]
-        ni.Neighbors    = [ni.NTop,    ni.NTopRight,   ni.NRight, ni.NBottomRight,
-                           ni.NBottom, ni.NBottomLeft, ni.NLeft,  ni.NTopLeft]
+        ni.Neighbors    = [ni.NTop,    ni.NRight, ni.NBottom, ni.NLeft]
         # Create views for the grid boundaries.
         ni.TopRow       = Base[1:2,                           1:BaseShape[1]-1]
         ni.BottomRow    = Base[BaseShape[0]-2:BaseShape[0]-1, 1:BaseShape[1]-1]
@@ -312,8 +311,7 @@ class CAGrid(numpy.ndarray):
         Old.NBottomLeft  = Old.Base[2:BaseShape[0],   0:BaseShape[1]-2]
         Old.NBottom      = Old.Base[2:BaseShape[0],   1:BaseShape[1]-1]
         Old.NBottomRight = Old.Base[2:BaseShape[0],   2:BaseShape[1]]
-        Old.Neighbors   = [Old.NTop, Old.NTopRight, Old.NRight, Old.NBottomRight,
-                           Old.NBottom, Old.NBottomLeft, Old.NLeft, Old.NTopLeft]
+        Old.Neighbors   = [Old.NTop, Old.NRight, Old.NBottom, Old.NLeft]
         ni.Old       = Old
         ni.TrueArray = numpy.full(ni.shape,True,dtype=numpy.dtype('b'))
         ni.count     = numpy.zeros(ni.shape)
