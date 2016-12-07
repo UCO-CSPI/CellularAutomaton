@@ -1,4 +1,5 @@
 import numpy
+from random import uniform
 
 
 class Cell:
@@ -316,6 +317,7 @@ class CAGrid(numpy.ndarray):
         ni.Old       = Old
         ni.TrueArray = numpy.full(ni.shape,True,dtype=numpy.dtype('b'))
         ni.count     = numpy.zeros(ni.shape)
+        ni.cond      = numpy.full(ni.shape,False,dtype=numpy.dtype('b'))
         ni.UpdateCount = 0
 
         return ni
