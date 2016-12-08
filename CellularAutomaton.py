@@ -324,10 +324,11 @@ class CAGrid(numpy.ndarray):
         ni.Old       = Old
         ni.TrueArray = numpy.full(ni.shape,True,dtype=numpy.dtype('b'))
         ni.count     = numpy.zeros(ni.shape)
-        if CAGrid.IncludeDiagonalNeighbors:
-            ni.ran = numpy.random.rand(ni.shape[0], ni.shape[1]) * 8
-        else:
-            ni.ran = numpy.random.rand(ni.shape[0], ni.shape[1]) * 4
+        #if CAGrid.IncludeDiagonalNeighbors:
+        #    ni.ran = numpy.random.rand(ni.shape[0], ni.shape[1]) * 8
+        #else:
+        #    ni.ran = numpy.random.rand(ni.shape[0], ni.shape[1]) * 4
+        ni.ran = numpy.random.rand(ni.shape[0], ni.shape[1])
         ni.UpdateCount = 0
 
         return ni
